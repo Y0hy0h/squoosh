@@ -1,5 +1,7 @@
-import { isMainThread } from 'worker_threads';
-import { cpus } from 'os';
+/**
+ * Modifications by (c) 2021 Johannes Maas
+ */
+
 import { promises as fsp } from 'fs';
 
 import { codecs as encoders, preprocessors } from './codecs.js';
@@ -7,7 +9,6 @@ import WorkerPool from './worker_pool.js';
 import { autoOptimize } from './auto-optimizer.js';
 import type ImageData from './image_data';
 
-export { ImagePool, encoders, preprocessors };
 type EncoderKey = keyof typeof encoders;
 type PreprocessorKey = keyof typeof preprocessors;
 type FileLike = Buffer | ArrayBuffer | string | ArrayBufferView;
@@ -145,39 +146,17 @@ async function encodeImage({
   };
 }
 
-type EncodeParams = { operation: 'encode' } & Parameters<typeof encodeImage>[0];
-type DecodeParams = { operation: 'decode' } & Parameters<typeof decodeFile>[0];
-type PreprocessParams = { operation: 'preprocess' } & Parameters<
-  typeof preprocessImage
->[0];
-type JobMessage = EncodeParams | DecodeParams | PreprocessParams;
-
-function handleJob(params: JobMessage) {
-  switch (params.operation) {
-    case 'encode':
-      return encodeImage(params);
-    case 'decode':
-      return decodeFile(params);
-    case 'preprocess':
-      return preprocessImage(params);
-    default:
-      throw Error(`Invalid job "${(params as any).operation}"`);
-  }
-}
-
 /**
  * Represents an ingested image.
  */
-class Image {
+export class Image {
   public file: FileLike;
-  public workerPool: WorkerPool<JobMessage, any>;
   public decoded: Promise<{ bitmap: ImageData }>;
   public encodedWith: { [key: string]: any };
 
-  constructor(workerPool: WorkerPool<JobMessage, any>, file: FileLike) {
+  constructor(file: FileLike) {
     this.file = file;
-    this.workerPool = workerPool;
-    this.decoded = workerPool.dispatchJob({ operation: 'decode', file });
+    this.decoded = decodeFile({ file });
     this.encodedWith = {};
   }
 
@@ -197,8 +176,7 @@ class Image {
         preprocessors[preprocessorName].defaultOptions,
         options,
       );
-      this.decoded = this.workerPool.dispatchJob({
-        operation: 'preprocess',
+      this.decoded = preprocessImage({
         preprocessorName,
         image: await this.decoded,
         options: preprocessorOptions,
@@ -231,8 +209,7 @@ class Image {
         typeof options === 'string'
           ? options
           : Object.assign({}, encRef.defaultEncoderOptions, options);
-      this.encodedWith[encName] = this.workerPool.dispatchJob({
-        operation: 'encode',
+      this.encodedWith[encName] = encodeImage({
         bitmap,
         encName,
         encConfig,
@@ -244,40 +221,4 @@ class Image {
     }
     await Promise.all(Object.values(this.encodedWith));
   }
-}
-
-/**
- * A pool where images can be ingested and squooshed.
- */
-class ImagePool {
-  public workerPool: WorkerPool<JobMessage, any>;
-
-  /**
-   * Create a new pool.
-   * @param {number} [threads] - Number of concurrent image processes to run in the pool. Defaults to the number of CPU cores in the system.
-   */
-  constructor(threads: number) {
-    this.workerPool = new WorkerPool(threads || cpus().length, __filename);
-  }
-
-  /**
-   * Ingest an image into the image pool.
-   * @param {FileLike} image - The image or path to the image that should be ingested and decoded.
-   * @returns {Image} - A custom class reference to the decoded image.
-   */
-  ingestImage(image: FileLike): Image {
-    return new Image(this.workerPool, image);
-  }
-
-  /**
-   * Closes the underlying image processing pipeline. The already processed images will still be there, but no new processing can start.
-   * @returns {Promise<void>} - A promise that resolves when the underlying pipeline has closed.
-   */
-  async close(): Promise<void> {
-    await this.workerPool.join();
-  }
-}
-
-if (!isMainThread) {
-  WorkerPool.useThisThreadAsWorker(handleJob);
 }
