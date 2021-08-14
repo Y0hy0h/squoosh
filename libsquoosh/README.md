@@ -30,7 +30,7 @@ const imagePath = 'path/to/image.png';
 const image = imagePool.ingestImage(imagePath);
 ```
 
-The `ingestImage` function can take anything the node [`readFile`][readfile] function can take, uncluding a buffer and `FileHandle`.
+The `ingestImage` function can take anything the node [`readFile`][readfile] function can take, including a buffer and `FileHandle`.
 
 The returned `image` object is a representation of the original image, that you can now preprocess, encode, and extract information about.
 
@@ -42,11 +42,19 @@ When an image has been ingested, you can start preprocessing it and encoding it 
 await image.decoded; //Wait until the image is decoded before running preprocessors. 
 
 const preprocessOptions = {
+  //When both width and height are specified, the image resized to specified size.
   resize: {
     enabled: true,
     width: 100,
     height: 50,
   }
+  /*
+  //When either width or height is specified, the image resized to specified size keeping aspect ratio.
+  resize: {
+    enabled: true,
+    width: 100,
+  }
+  */
 }
 await image.preprocess(preprocessOptions);
 
