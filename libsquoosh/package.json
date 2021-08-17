@@ -1,6 +1,6 @@
 {
-  "name": "@squoosh/lib",
-  "version": "0.4.0",
+  "name": "@y0hy0h/squoosh",
+  "version": "0.5.0",
   "description": "A Node library for Squoosh",
   "public": true,
   "main": "./build/index.js",
@@ -12,10 +12,12 @@
   },
   "keywords": [],
   "author": "Google Chrome Developers <chromium-dev@google.com>",
-  "homepage": "https://github.com/GoogleChromeLabs/squoosh",
+  "contributors": [
+    "Johannes Maas <y0hy0h@gmx.net>"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/GoogleChromeLabs/squoosh.git"
+    "url": "https://github.com/Y0hy0h/squoosh.git"
   },
   "license": "Apache-2.0",
   "engines": {
