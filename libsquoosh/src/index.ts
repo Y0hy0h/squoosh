@@ -5,7 +5,6 @@
 import { promises as fsp } from 'fs';
 
 import { codecs as encoders, preprocessors } from './codecs.js';
-import WorkerPool from './worker_pool.js';
 import { autoOptimize } from './auto-optimizer.js';
 import type ImageData from './image_data';
 
