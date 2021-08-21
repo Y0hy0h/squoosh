@@ -1,6 +1,6 @@
 {
   "name": "@y0hy0h/squoosh",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "A Node library for Squoosh",
   "public": true,
   "main": "./build/index.js",
