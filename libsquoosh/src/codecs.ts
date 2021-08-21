@@ -99,7 +99,7 @@ const oxipngPromise = oxipng.default(fsp.readFile(pathify(oxipngWasm)));
 // Resize
 import * as resize from '../../codecs/resize/pkg/squoosh_resize.js';
 import resizeWasm from 'asset-url:../../codecs/resize/pkg/squoosh_resize_bg.wasm';
-const resizePromise = resize.default(fsp.readFile(pathify(resizeWasm)));
+const resizePromise = () => resize.default(fsp.readFile(pathify(resizeWasm)));
 
 // rotate
 import rotateWasm from 'asset-url:../../codecs/rotate/rotate.wasm';
@@ -166,7 +166,7 @@ export const preprocessors = {
     name: 'Resize',
     description: 'Resize the image before compressing',
     instantiate: async () => {
-      await resizePromise;
+      await resizePromise();
       return (
         buffer: Uint8Array,
         input_width: number,
@@ -185,7 +185,7 @@ export const preprocessors = {
           target_width: width,
           target_height: height,
         }));
-        return new ImageData(
+        const imageData = new ImageData(
           resize.resize(
             buffer,
             input_width,
@@ -199,6 +199,8 @@ export const preprocessors = {
           width,
           height,
         );
+        resize.cleanup()
+        return imageData;
       };
     },
     defaultOptions: {

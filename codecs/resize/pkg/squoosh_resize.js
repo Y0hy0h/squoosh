@@ -116,5 +116,12 @@ async function init(input) {
     return wasm;
 }
 
+// Manually remove the wasm and memory references to trigger GC
+export function cleanup() {
+    wasm = null;
+    cachegetUint8Memory0 = null;
+    cachegetInt32Memory0 = null;
+}
+
 export default init;
 

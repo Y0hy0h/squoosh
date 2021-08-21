@@ -23,6 +23,8 @@ export interface InitOutput {
   readonly __wbindgen_free: (a: number, b: number) => void;
 }
 
+export function cleanup(): void;
+
 /**
 * If `module_or_path` is {RequestInfo} or {URL}, makes a request and
 * for everything else, calls `WebAssembly.instantiate` directly.
@@ -31,4 +33,4 @@ export interface InitOutput {
 *
 * @returns {Promise<InitOutput>}
 */
-export default function init (module_or_path?: InitInput | Promise<InitInput>): Promise<InitOutput>;
+export default function init(module_or_path?: InitInput | Promise<InitInput>): Promise<InitOutput>;
